@@ -12,27 +12,35 @@ import (
 	"syscall"
 	"time"
 
-	"handler/function"
+	"github.com/99designs/gqlgen/graphql/handler"
+
+	"handler/function/resolver"
+	"handler/generated"
 )
 
 var (
 	acceptingConnections int32
 )
 
-const defaultTimeout = 10 * time.Second
+const (
+	defaultPort    = "8082"
+	defaultTimeout = 10 * time.Second
+)
 
 func main() {
 	readTimeout := parseIntOrDurationValue(os.Getenv("read_timeout"), defaultTimeout)
 	writeTimeout := parseIntOrDurationValue(os.Getenv("write_timeout"), defaultTimeout)
 
+	gqlhandler := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{}}))
+
 	s := &http.Server{
-		Addr:           fmt.Sprintf(":%d", 8082),
+		Addr:           fmt.Sprintf(":%s", defaultPort),
 		ReadTimeout:    readTimeout,
 		WriteTimeout:   writeTimeout,
 		MaxHeaderBytes: 1 << 20, // Max header of 1MB
 	}
 
-	http.HandleFunc("/", function.Handle)
+	http.Handle("/", gqlhandler)
 
 	listenUntilShutdown(s, writeTimeout)
 }

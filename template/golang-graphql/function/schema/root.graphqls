@@ -1,0 +1,54 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+scalar Time
+
+extend type Query {
+    todos(input: TodoInput!, orderBy: TodoOrderFields!, page: PaginationInput!): TodoConnection!
+}
+
+# Example of relay style response
+#
+type Mutation {
+  createTodo(input: CreateTodoInput!): Todo!
+  updateTodo(input: UpdateTodoInput!): Todo!
+}
+
+type Todo implements Node @key(fields: "id") {
+    id: ID!
+    text: String!
+    completed: Boolean!
+    completedAt: Time!
+}
+
+type TodoEdge implements Edge {
+  cursor: String!
+  node: Todo!
+}
+
+type TodoConnection implements Connection {
+  edges: [TodoEdge!]! # use this when edge data is necessary
+  nodes: [Todo!]!
+  pageInfo: PageInfo!
+}
+
+input TodoInput {
+  completed: Boolean
+}
+
+enum TodoOrderFields {
+  LATEST
+  COMPLETED
+}
+
+input CreateTodoInput {
+  text: String!
+  completed: Boolean
+}
+
+input UpdateTodoInput {
+  todoID: ID!
+  text: String
+  completed: Boolean
+}
